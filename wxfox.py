@@ -126,7 +126,17 @@ class Payload:
 
     def __init__(self, root: Path = ROOT):
         self.root = root
-        payload = self._read_json(root / 'payload.json') or {}
+        source = root / 'payload.json'
+        payload = self._read_json(source)
+        if payload is None:
+            raise SystemExit(
+                f'找不到素材包：{source}\n'
+                'payload.json 是随仓库交付的必需素材（字形板/歌词/频谱）。\n'
+                '若你是 clone 下来的，请确认它没有被删；\n'
+                '若你重新构建过，请在仓库根目录执行：\n'
+                '    python3 build.py <含 lyrics.json/spectrum.json 的目录> .'
+            )
+        self.source = source
         self.hero = payload.get('hero') or {}
         self.lyrics = payload.get('lyrics') or []
         spectrum = payload.get('spectrum') or {}
@@ -136,6 +146,13 @@ class Payload:
         self.config = self._read_json(root / 'config.json') or dict(self.DEFAULT_CONFIG)
         self.times = [float(line.get('time', 0.0)) for line in self.lyrics]
 
+        if not self.hero.get('body') or not self.lyrics:
+            raise SystemExit(
+                f'素材包内容不完整：{self.source}\n'
+                f'  hero={"有" if self.hero.get("body") else "缺失"}  '
+                f'lyrics={len(self.lyrics)} 行  spectrum={len(self.frames)} 帧\n'
+                '请用 build.py 在仓库根目录重新生成 payload.json。'
+            )
         cell = self.calibration.get('cell') or {}
         self.sub = max(4, int(cell.get('sub') or 8))
         render = self.calibration.get('render') or {}

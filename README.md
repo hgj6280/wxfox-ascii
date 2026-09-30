@@ -77,6 +77,23 @@ python3 wxfox.py --at 155 --mode plain --width 100 --height 34
 三种编码器（彩色 / 单色 / 纯文本）的转义正确性、ASCII 兜底是否 7-bit、
 以及 CLI 的 plain / json 输出。不需要终端，可在 CI 里跑。
 
+## ⚠️ payload.json 是必需素材，不要删
+
+`payload.json` **不是构建中间产物，而是随仓库交付的素材包**——小狐狐字形板、
+歌词时间轴、频谱数据全在里面。缺了它播放器不会报错，只会画出一片空白，
+所以它必须留在仓库里。
+
+如果你重新构建，请**在仓库根目录**生成，不要放进任何被 `.gitignore`
+忽略的目录（例如 `stage/`）：
+
+```sh
+python3 build.py <含 lyrics.json/spectrum.json 的目录> .   # 注意最后一个参数是 .
+python3 test_wxfox.py .
+```
+
+`build.py` 只覆盖 `payload.json`，并会把 `wxfox.py` 等源码原样复制到目标目录；
+真正需要纳入版本管理的产物只有 `payload.json` 一个。
+
 ## 参数
 
 ```
